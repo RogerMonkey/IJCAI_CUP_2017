@@ -3,12 +3,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import random
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import sys
+
 sys.path.append('../main')
 from unit import *
 
-#单个商家客流量的走势图，可调整时间段，也可以按指定的周几绘图
+
+# 单个商家客流量的走势图，可调整时间段，也可以按指定的周几绘图
 def draw_single_shop(shop_id, num_start_day=0, num_end_day=488, week=False, fr='D'):
     start_day = '2015-07-01'
     start_day = datetime.strptime(start_day, '%Y-%m-%d') + timedelta(days=num_start_day)
@@ -21,7 +23,7 @@ def draw_single_shop(shop_id, num_start_day=0, num_end_day=488, week=False, fr='
         print ''
 
     delta = (end_day - start_day).days
-    count_user_pay = pd.read_csv('../csv/count_pay_and_view/count_user_pay.csv')
+    count_user_pay = pd.read_csv('../../data/statistics/count_user_pay.csv')
     count_user_pay.index = count_user_pay.shop_id.values
     count_user_pay = transform_count_user_pay_datetime(count_user_pay)
     values = count_user_pay.ix[shop_id, dates]
@@ -47,7 +49,7 @@ def draw_single_shop(shop_id, num_start_day=0, num_end_day=488, week=False, fr='
     ax.legend(loc='best')
 
 
-#多个商家客流量的走势图，可调整时间段，也可以按指定的周几绘图，可以计算avg.
+# 多个商家客流量的走势图，可调整时间段，也可以按指定的周几绘图，可以计算avg.
 def draw_multi_shops(shop_id=[i for i in range(1, 2001)], num_start_day=0, num_end_day=488, week=False, fr='D',
                      _mean=False, _min=False, _std=False, _25=False, _50=False, _75=False, _max=False):
     if (type(num_start_day) == type(num_end_day) == type(1)):
@@ -65,7 +67,7 @@ def draw_multi_shops(shop_id=[i for i in range(1, 2001)], num_start_day=0, num_e
         print ''
 
     delta = (end_day - start_day).days
-    count_user_pay = pd.read_csv('../csv/count_pay_and_view/count_user_pay.csv')
+    count_user_pay = pd.read_csv('../../data/statistics/count_user_pay.csv')
     count_user_pay.index = count_user_pay.shop_id.values
     count_user_pay = transform_count_user_pay_datetime(count_user_pay)
     values = count_user_pay.ix[shop_id, dates]
@@ -114,7 +116,7 @@ def draw_multi_shops(shop_id=[i for i in range(1, 2001)], num_start_day=0, num_e
     ax.legend(loc='best')
 
 
-#多个商家浏览量的走势图，可调整时间段，也可以按指定的周几绘图，可以计算avg.
+# 多个商家浏览量的走势图，可调整时间段，也可以按指定的周几绘图，可以计算avg.
 def draw_multi_shops_view(shop_id=[i for i in range(1, 2001)], num_start_day=0, num_end_day=273, week=False, fr='D',
                           _mean=False, _min=False, _std=False, _25=False, _50=False, _75=False, _max=False):
     if (type(num_start_day) == type(num_end_day) == type(1)):
@@ -133,7 +135,7 @@ def draw_multi_shops_view(shop_id=[i for i in range(1, 2001)], num_start_day=0, 
         print ''
 
     delta = (end_day - start_day).days
-    count_user_view = pd.read_csv('../csv/count_pay_and_view/count_user_view.csv')
+    count_user_view = pd.read_csv('../../data/statistics/count_user_view.csv')
     count_user_view.index = count_user_view.shop_id.values
     count_user_view = transform_count_user_view_datetime(count_user_view)
     values = count_user_view.ix[shop_id, dates]
@@ -180,6 +182,45 @@ def draw_multi_shops_view(shop_id=[i for i in range(1, 2001)], num_start_day=0, 
             ax.plot(values.ix[i], label=str(i))
     plt.subplots_adjust(bottom=0.2)
     ax.legend(loc='best')
+
+
+'''本函数用于将count_user_pay中，列名称全部转变为datetime格式，并且返回。'''
+
+
+def transform_count_user_pay_datetime(count_user_pay):
+    col = count_user_pay.columns
+    tmp = []
+    tmp1 = []
+    for one in col:
+        tmp.append(one.replace('count_user_pay_', ''))
+    for one in tmp:
+        tmp1.append(one.replace('_', '-'))
+    col = []
+    col.append(tmp1[0])
+    for one in tmp1[1:]:
+        col.append(datetime.strptime(one, '%Y-%m-%d'))
+    count_user_pay.columns = col
+    return count_user_pay
+
+
+'''本函数用于将count_user_view中，列名称全部转变为datetime格式，并且返回。'''
+
+
+def transform_count_user_view_datetime(count_user_view):
+    col = count_user_view.columns
+    tmp = []
+    tmp1 = []
+    for one in col:
+        tmp.append(one.replace('count_user_view_', ''))
+    for one in tmp:
+        tmp1.append(one.replace('_', '-'))
+    col = []
+    col.append(tmp1[0])
+    for one in tmp1[1:]:
+        col.append(datetime.strptime(one, '%Y-%m-%d'))
+    count_user_view.columns = col
+    return count_user_view
+
 
 # 画数据的折线图
 def draw(filename1, filename2, filename3):
@@ -252,16 +293,17 @@ def ali_eval(p1, p2):
     result = np.nan_to_num(result)
     return np.mean(np.abs(result))
 
-def cal_diff(filename1,filename2):
+
+def cal_diff(filename1, filename2):
     a = np.loadtxt(filename1, delimiter=',')
     b = np.loadtxt(filename2, delimiter=',')
     import math
-    sum=0
-    for i in range(0,a.shape[0]):
-        for j in range(1,a.shape[1]):
-            sum +=  math.fabs(a[i,j]-b[i,j])/(a[i,j]+b[i,j])
-    return sum/(a.shape[0]*(a.shape[1]-1))
+    sum = 0
+    for i in range(0, a.shape[0]):
+        for j in range(1, a.shape[1]):
+            sum += math.fabs(a[i, j] - b[i, j]) / (a[i, j] + b[i, j])
+    return sum / (a.shape[0] * (a.shape[1] - 1))
+
 
 if __name__ == '__main__':
     pass
-

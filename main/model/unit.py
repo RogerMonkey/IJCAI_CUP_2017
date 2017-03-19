@@ -15,27 +15,30 @@ def ndarray2df(arr, column_name='col_'):
 
 def calc_score(p, d):
     """用于线下测试预测的评分"""
-    return np.mean(np.abs(np.nan_to_num((p - d) / (p + d))))
+    return np.mean(np.abs(np.nan_to_num((p - d) * 1.0 / (p + d))))
 
 
 def repeat_result(ret):
     """复制第一周结果接在第一周结果之后，在首列之前加入shop_id列"""
     return np.concatenate((ret, ret), axis=1)
 
-#计算成绩
+
+# 计算成绩
 def calcscore(p, d):
-    return np.mean(np.abs(np.nan_to_num((p - d) / (p + d))))
+    return np.mean(np.abs(np.nan_to_num((p - d) * 1.0 / (p + d))))
+
 
 """
 ########################## 特征抽取 ################
 """
 
-#获取训练三周对应的特征，包括每周的平均值，相对于前一天的幅度
+
+# 获取训练三周对应的特征，包括每周的平均值，相对于前一天的幅度
 def ExtractTrainFeature(train):
     Rng, weekAvg = [], []
     for i in range(len(train)):
         d, tot, num = train.ix[i, :], np.zeros(7), np.zeros(7)
-        Rng.append([100 if int(d[j - 1]) == 0 else d[j] / d[j - 1] for j in range(1, len(d))])
+        Rng.append([100 if int(d[j - 1]) == 0 else d[j]*1.0 / d[j - 1] for j in range(1, len(d))])
         for j in range(len(d)):
             if d[j] > 0:
                 tot[j % 7] += d[j]
@@ -45,20 +48,16 @@ def ExtractTrainFeature(train):
            ndarray2df(np.asarray(weekAvg), 'weekAvg_')
 
 
-def visit2buy():
-    a = np.loadtxt('./data/back.csv', delimiter=',', dtype=np.float64)
-    return ndarray2df(a[:, 1].reshape(2000, 1), 'back_')
-
-
 def repeatRet(ret):
     return np.concatenate((np.arange(1, 2001).reshape(2000, 1), ret, ret), axis=1)
 
-#计算开业率
+
+# 计算开业率
 def calcOpenDay(train):
     return ndarray2df(np.where(train.ix[:, :] > 0, 1, 0), 'openDay_')
 
 
-#获取最后一个月（除了10月1号一星期的数据）的平均值，求和以及中位数
+# 获取最后一个月（除了10月1号一星期的数据）的平均值，求和以及中位数
 def ExtractMonthFeature():
     shop = np.loadtxt('../../data/statistics/count_user_pay_avg_no_header.csv', delimiter=',').T
     dateRange = pd.date_range('2016-3-1', '2016-10-31', freq='D', name='Date')
@@ -68,7 +67,8 @@ def ExtractMonthFeature():
     monthMedian = ndarray2df(shop.ix['2016-10-8':'2016-10-31'].median(axis=0).values.reshape(2000, 1), 'monthmedian_')
     return monthSum, monthMean, monthMedian
 
-#获取每一个月方差，平均值和中位数  每星期之间的方法和每星期的浮动 多个月整体的sum，median和mean
+
+# 获取每一个月方差，平均值和中位数  每星期之间的方法和每星期的浮动 多个月整体的sum，median和mean
 def ExtractYearFeature():
     shop = np.loadtxt('../../data/statistics/count_user_pay_avg_no_header.csv', delimiter=',').T
     dateRange = pd.date_range('2016-3-1', '2016-10-31', freq='D', name='Date')
@@ -80,7 +80,7 @@ def ExtractYearFeature():
         yearVar[i, :] = np.var(tw, axis=0)
         avg = np.mean(tw, axis=0)
         for j in range(1, 7):
-            yearRng[i, j - 1] = 10 if int(avg[j - 1]) == 0 else avg[j] / avg[j - 1]
+            yearRng[i, j - 1] = 10 if int(avg[j - 1]) == 0 else avg[j]*1.0 / avg[j - 1]
     yearMedian, yearAvg = np.zeros((2000, 8)), np.zeros((2000, 8))
     for i, m in enumerate(('31', '30', '31', '30', '31', '31', '30', '31')):
         tmp = shop.ix['2016-' + str(i + 3) + '-1':'2016-' + str(i + 3) + '-' + m]
@@ -90,7 +90,7 @@ def ExtractYearFeature():
     yearMRng = np.zeros((2000, 8))
     for i in range(2000):
         for j in range(1, 8):
-            yearMRng[i, j - 1] = 10 if int(yearAvg[i, j - 1]) == 0 else yearAvg[i, j] / yearAvg[i, j - 1]
+            yearMRng[i, j - 1] = 10 if int(yearAvg[i, j - 1]) == 0 else yearAvg[i, j]*1.0 / yearAvg[i, j - 1]
 
     yearMax = shop.ix['2016-3-1':'2016-10-30'].max(axis=0).values.reshape(2000, 1)
     yearMin = shop.ix['2016-3-1':'2016-10-30'].min(axis=0).values.reshape(2000, 1)
@@ -104,6 +104,7 @@ def ExtractYearFeature():
            ndarray2df(yearRng, 'yearRng'), \
            ndarray2df(yearMRng, 'yearMRng_')
 
+
 def calc_open_day(train):
     """将有交易的天设置为1，没有交易的天设置为0"""
     return ndarray2df(np.where(train.ix[:, :] > 0, 1, 0), 'open_day_')
@@ -115,7 +116,7 @@ def open_ratio(threshold=0, start=0, end=488, bigger=True):
     open_ratio_arr, tot = [], end - start + 1
     for row in range(len(count_user_pay)):
         shop = count_user_pay.ix[row][start:end]
-        open_ratio_arr.append(round((shop > 0).sum() / tot, 4))
+        open_ratio_arr.append(round((shop > 0).sum() / float(tot), 4))
     open_ratio_arr = np.asarray(open_ratio_arr)
     index = bigger and open_ratio_arr >= threshold or open_ratio_arr <= threshold
     return pd.DataFrame({'shop_id': (count_user_pay.shop_id)[index].values, 'open_ratio': open_ratio_arr[index]})
@@ -195,7 +196,7 @@ def day_feature(data):
         for j in range(len(d)):
             sum_[j % 7] += d[j]
             tot_[j % 7] += int(d[j] > 0)
-        day_avg.append([sum_[j] / tot_[j] if tot_[j] else 0 for j in range(7)])
+        day_avg.append([float(sum_[j]) / tot_[j] if tot_[j] else 0 for j in range(7)])
     return ndarray2df(np.asarray(diff), 'diff_'), ndarray2df(np.asarray(day_avg), 'seven_day_')
 
 
@@ -248,13 +249,10 @@ def calcWeekGainRate(train):
         Gain = []
         for j in range(1, int(len(d) / 7)):
             a, b = sum(d.values[(j - 1) * 7:j * 7]), sum(d.values[j * 7:(j + 1) * 7])
-            Gain.append(b / a if a > 0 else 1)
+            Gain.append(float(b) / a if a > 0 else 1)
         weekGainRate.append(Gain)
     return ndarray2df(np.asarray(weekGainRate), 'weekGainRate_')
 
 
-
 if __name__ == '__main__':
     pass
-
-

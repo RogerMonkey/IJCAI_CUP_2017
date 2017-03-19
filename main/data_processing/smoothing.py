@@ -160,31 +160,31 @@ def writeto(dates,weekList,fileto):
         fr_to.write("\n")
     fr_to.close()
 
-def week4(data2):
+def week4(data2,standardDF):
     weekDF = data2.ix[:, 488:494]
     weekList = balanceDf2(weekDF=weekDF, standardDF=standardDF)
     dates = ['2016-10-25', '2016-10-26', '2016-10-27', '2016-10-28', '2016-10-29', '2016-10-30', '2016-10-31']
     writeto(dates, weekList, "../../data/weekABCD/week4.csv")
 
-def week3(data2):
+def week3(data2,standardDF):
     weekDF = data2.ix[:, 481:487]
     weekList = balanceDf2(weekDF=weekDF, standardDF=standardDF)
     dates = ['2016-10-18', '2016-10-19', '2016-10-20', '2016-10-21', '2016-10-22', '2016-10-23', '2016-10-24']
     writeto(dates, weekList, "../../data/weekABCD/week3.csv")
 
-def week2(data2):
+def week2(data2,standardDF):
     weekDF = data2.ix[:, 474:480]
     weekList = balanceDf2(weekDF=weekDF, standardDF=standardDF)
     dates = ['2016-10-11', '2016-10-12', '2016-10-13', '2016-10-14', '2016-10-15', '2016-10-16', '2016-10-17']
     writeto(dates, weekList, "../../data/weekABCD/week2.csv")
 
-def week1(data2):
+def week1(data2,standardDF):
     weekDF = data2.ix[:, 453:459]
     weekList = balanceDf2(weekDF=weekDF, standardDF=standardDF)
     dates = ['2016-09-20', '2016-09-21', '2016-09-22', '2016-09-23', '2016-09-24', '2016-09-25', '2016-09-26']
     writeto(dates, weekList, "../../data/weekABCD/week1.csv")
 
-def week0(data2):
+def week0(data2,standardDF):
     weekDF = data2.ix[:, 446:452]
     weekList = balanceDf2(weekDF=weekDF, standardDF=standardDF)
     dates = ['2016-09-13', '2016-09-14', '2016-09-15', '2016-09-16', '2016-09-17', '2016-09-18', '2016-09-19']
@@ -196,8 +196,8 @@ if __name__ == '__main__':
     standardDF = data1.ix[:, 1:7]
     # print standardDF.shape
     data2 = pd.read_csv('../../data/statistics/shop_day_num.txt', names=range(0, 495))
-    week4(data2)
-    week3(data2)
-    week2(data2)
-    week1(data2)
-    week0(data2)
+    week4(data2,standardDF)
+    week3(data2,standardDF)
+    week2(data2,standardDF)
+    week1(data2,standardDF)
+    week0(data2,standardDF)
